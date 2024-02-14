@@ -1,5 +1,7 @@
 from collections import defaultdict
 
+import periodictable
+
 from loadpos import PosData
 
 class ParseError(Exception):
@@ -43,7 +45,9 @@ class Assigner:
         self.elements: list[str] = []
 
         self.ranges: dict[str, list[tuple[float, float]]] = defaultdict(list)
-        self.volumes: dict[str, float] = {} # Volumes of ions
+        self.volumes: dict[str, float] = {}    # Volumes of ions
+        self.slds: dict[str, float] = {}       # SLDs
+        self.sld_volume: dict[str, float] = {} # SLDs x volume
 
         # Load the data, file looks toml like, but it's not toml
         with open(filename, 'r') as fid:
@@ -124,10 +128,12 @@ class Assigner:
 
                 raise ParseError(f"Parsing failed on line {counter.line_no}: '{counter.line.strip()}' -- {e}")
 
+
+
     def __repr__(self):
         s = ", ".join(self.elements)
         return f"{self.__class__.__name__}({s})"
 
-    def assign(self, data: PosData):
+    def assign_sld_volumes(self, data: PosData):
         """ Apply the assignment to X,Y,Z,M/Z data (takes a PosData object)"""
 
