@@ -1,4 +1,5 @@
 import numpy as np
+from plotting import show_sample
 
 class PosData:
     """ Positions and mass/charge ratio from a .pos file, along with a few helper functions """
@@ -38,31 +39,4 @@ class PosData:
         return self.data[:, 3]
 
     def show_sample(self, autoshow: bool=True, n=10_000):
-        import matplotlib.pyplot as plt
-
-        n = min([self.n, n])
-
-        plt.figure()
-
-        plt.subplot(2, 2, 1)
-        plt.scatter(self.x[:n], self.y[:n])
-        plt.xlabel("X")
-        plt.ylabel("Y")
-
-        plt.subplot(2, 2, 2)
-        plt.scatter(self.x[:n], self.z[:n])
-        plt.xlabel("X")
-        plt.ylabel("Z")
-
-        plt.subplot(2, 2, 3)
-        plt.scatter(self.y[:n], self.z[:n])
-        plt.xlabel("Y")
-        plt.ylabel("Z")
-
-        plt.subplot(2, 2, 4)
-        plt.hist(self.m_over_z[:n], bins=200)
-        plt.xlabel("m/z")
-        plt.ylabel("counts")
-
-        if autoshow:
-            plt.show()
+       show_sample(self.data, autoshow=autoshow, n=n, name=self.filename)

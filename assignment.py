@@ -1,8 +1,10 @@
 from collections import defaultdict
 
+import numpy as np
 import periodictable
 
 from loadpos import PosData
+from plotting import show_sample
 
 class ParseError(Exception):
     pass
@@ -37,6 +39,44 @@ class LineCounter:
         return self.line
 
 
+class Assignment:
+
+    """ Object to assigned tomography data"""
+    def __init__(self,
+                 filename: str,
+                 coordinates_and_mz: dict[str, np.ndarray],
+                 countwise_element_ratios: dict[str, float]):
+
+        self.filename = filename
+        self.coordinates_and_mz = coordinates_and_mz
+        self.countwise_element_ratios = countwise_element_ratios
+
+    @property
+    def coordinates(self):
+        """ Coordinates of a given ion type"""
+        return {el: self.coordinates_and_mz[el][:,:3] for el in self.coordinates_and_mz}
+    def __repr__(self):
+        el_frac = reversed(sorted(self.countwise_element_ratios.items(), key=lambda x: x[1]))
+        pretty = ["%s(%i%%)"%(el, int(100*frac)) if frac > 0.01 else el for el, frac in el_frac]
+        comp_string = " ".join(pretty)
+        return f"Assignment({self.filename}, {comp_string})"
+
+    def ion_plot(self, ion: str, autoshow: bool=True, n: int = 10_000):
+        data = self.coordinates_and_mz[ion]
+        show_sample(data, autoshow=autoshow, n=n, name=ion)
+
+
+    def ion_plots(self, autoshow: bool=True, n: int = 10_000):
+        import matplotlib.pyplot as plt
+
+        for ion in self.coordinates_and_mz:
+            data = self.coordinates_and_mz[ion]
+            show_sample(data, autoshow=False, n=n, name=ion)
+
+        if autoshow:
+            plt.show()
+
+
 class Assigner:
     """ m/z assignment based on an .rrng file, reads a .rrng file and provides the `assign`
      method to apply the assigment"""
@@ -48,6 +88,7 @@ class Assigner:
         self.volumes: dict[str, float] = {}    # Volumes of ions
         self.slds: dict[str, float] = {}       # SLDs
         self.sld_volume: dict[str, float] = {} # SLDs x volume
+        self.elemental_ion_breakdown: dict[str, list[tuple[str], int]] = {} # machine friendly ion representation
 
         # Load the data, file looks toml like, but it's not toml
         with open(filename, 'r') as fid:
@@ -115,11 +156,16 @@ class Assigner:
 
                         components.append((element, count))
 
+
+
                     # Sort element symbols alphabetically, so make sure we have a unique representation of the ion
-                    formula = "".join([el + str(n if n > 1 else "") for el, n in sorted(components, key=lambda x: x[0])])
+                    components = sorted(components, key=lambda x: x[0])
+
+                    formula = "".join([el + str(n if n > 1 else "") for el, n in components])
 
                     self.volumes[formula] = volume
                     self.ranges[formula].append((start, stop))
+                    self.elemental_ion_breakdown[formula] = components
 
             except StopIteration:
                 pass # A good place to stop
@@ -134,6 +180,34 @@ class Assigner:
         s = ", ".join(self.elements)
         return f"{self.__class__.__name__}({s})"
 
-    def assign_sld_volumes(self, data: PosData):
+    def assign(self, pos: PosData):
         """ Apply the assignment to X,Y,Z,M/Z data (takes a PosData object)"""
 
+        # Do the main assignment
+
+        assigned_raw = defaultdict(list)
+
+        for ion in self.ranges:
+            for start, stop in self.ranges[ion]:
+                inds = np.logical_and(
+                    pos.data[:, 3] >= start,
+                    pos.data[:, 3] <= stop)
+
+                assigned_raw[ion].append(pos.data[inds, :])
+
+        assigned = {ion: np.concatenate(assigned_raw[ion]) for ion in assigned_raw}
+
+        # Calculate countwise element ratios
+        element_counts = defaultdict(int)
+
+        total_atoms = 0
+        for ion in assigned:
+            n_atoms = assigned[ion].shape[0]
+            for element, atoms_per_ion in self.elemental_ion_breakdown[ion]:
+                contribution = n_atoms * atoms_per_ion
+                element_counts[element] += contribution
+                total_atoms += contribution
+
+        element_ratios = {el: element_counts[el]/total_atoms for el in element_counts}
+
+        return Assignment(filename=pos.filename, coordinates_and_mz=assigned, countwise_element_ratios=element_ratios)
