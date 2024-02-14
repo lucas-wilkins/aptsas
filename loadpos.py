@@ -2,7 +2,7 @@ import numpy as np
 
 class PosData:
     """ Positions and mass/charge ratio from a .pos file, along with a few helper functions """
-    def __init__(self, filename):
+    def __init__(self, filename: str):
         self.filename = filename
 
         with open(filename, 'rb') as fid:
