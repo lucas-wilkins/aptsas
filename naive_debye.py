@@ -113,8 +113,8 @@ class NaiveDebye:
                     # Iterate over chunks
                     chunk_counter = 0
                     total_chunks = (len(chunk_edges_1)-1)*(len(chunk_edges_2)-1)
-                    for start_1, stop_1 in zip(chunk_edges_1[:-1], chunk_edges_1[1:]):
-                        for start_2, stop_2 in zip(chunk_edges_2[:-1], chunk_edges_2[1:]):
+                    for chunk_index_1, (start_1, stop_1) in enumerate(zip(chunk_edges_1[:-1], chunk_edges_1[1:])):
+                        for chunk_index_2, (start_2, stop_2) in enumerate(zip(chunk_edges_2[:-1], chunk_edges_2[1:])):
 
                             chunk_counter += 1
                             if verbose:
@@ -129,8 +129,13 @@ class NaiveDebye:
                             r = r.reshape(1, -1)
 
                             # calculate scattering
-                            components = np.sum(np.sinc(r * qs_nm), axis=1)
+                            components = np.sinc(r * qs_nm)
 
+                            # Remove self scattering
+                            if i == j and chunk_index_1 == chunk_index_2:
+                                np.fill_diagonal(components, 0.0)
+
+                            components = np.sum(components, axis=1)
                             # add to shape factor and scattering
                             shape_factor += factor*components
 
