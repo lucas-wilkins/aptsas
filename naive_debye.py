@@ -72,6 +72,13 @@ class NaiveDebye:
         ions = [key for key in self.assignment.coordinates_and_mz.keys()]
         qs_nm = np.array(qs_angstrom)*10
 
+        counts = [self.assignment.coordinates[ion].shape[0] for ion in ions]
+        slds = [self.assignment.slds[ion] for ion in ions]
+
+        bulk_sld = np.sum([sld*count for sld, count in zip(slds, counts)]) / np.sum(counts)
+
+        rel_slds = {ion: sld - bulk_sld for ion, sld in zip(ions, slds)}
+
         shape_factor = np.zeros_like(qs_nm)
         scattering = np.zeros_like(qs_nm)
 
@@ -87,8 +94,8 @@ class NaiveDebye:
                     # Double the contribution from "off diagonal" elements
                     factor = 1 if i == j else 2
 
-                    sld1 = self.assignment.slds[ion1]
-                    sld2 = self.assignment.slds[ion2]
+                    sld1 = rel_slds[ion1]
+                    sld2 = rel_slds[ion2]
                     sld_factor = sld1*sld2
 
                     # calculate distances
@@ -141,4 +148,6 @@ class NaiveDebye:
 
                             scattering += factor*sld_factor*components
 
-        return NaiveDebyeOutput(q=qs_angstrom, scattering=scattering, shape=shape_factor)
+        out = NaiveDebyeOutput(q=qs_angstrom, scattering=scattering, shape=shape_factor)
+        self.output = out
+        return out

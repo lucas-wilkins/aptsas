@@ -4,7 +4,7 @@ from loadpos import PosData
 from assignment import Assigner
 from naive_debye import NaiveDebye
 
-data = PosData("data/R5083_23208-v01-roi_tempered.pos", downsample=10_000)
+data = PosData("data/R5083_23208-v01-roi_tempered.pos", downsample=30_000)
 # data = PosData("data/R5083_22972-v01_austenited.pos")
 
 print(data)
