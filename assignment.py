@@ -4,6 +4,7 @@ import numpy as np
 import periodictable
 
 from loadpos import PosData
+from ion_slds import molecular_sld
 from plotting import show_sample
 
 class ParseError(Exception):
@@ -45,7 +46,8 @@ class Assignment:
     def __init__(self,
                  filename: str,
                  coordinates_and_mz: dict[str, np.ndarray],
-                 countwise_element_ratios: dict[str, float]):
+                 countwise_element_ratios: dict[str, float],
+                 slds: dict[str, float]):
 
         self.filename = filename
         self.coordinates_and_mz = coordinates_and_mz
@@ -88,7 +90,7 @@ class Assigner:
         self.volumes: dict[str, float] = {}    # Volumes of ions
         self.slds: dict[str, float] = {}       # SLDs
         self.sld_volume: dict[str, float] = {} # SLDs x volume
-        self.elemental_ion_breakdown: dict[str, list[tuple[str], int]] = {} # machine friendly ion representation
+        self.elemental_ion_breakdown: dict[str, list[tuple[str, int]]] = {} # machine friendly ion representation
 
         # Load the data, file looks toml like, but it's not toml
         with open(filename, 'r') as fid:
@@ -138,7 +140,7 @@ class Assigner:
 
                     # Get the composition
 
-                    components = []
+                    components: list[tuple[str, int]] = []
 
                     for token in tokens[2:]:
                         if token.startswith("Vol:"):
@@ -166,6 +168,10 @@ class Assigner:
                     self.volumes[formula] = volume
                     self.ranges[formula].append((start, stop))
                     self.elemental_ion_breakdown[formula] = components
+                    self.slds[formula] = molecular_sld(components)
+
+                    self.sld_volume[formula] = self.slds[formula] * self.volumes[formula]
+
 
             except StopIteration:
                 pass # A good place to stop
@@ -210,4 +216,8 @@ class Assigner:
 
         element_ratios = {el: element_counts[el]/total_atoms for el in element_counts}
 
-        return Assignment(filename=pos.filename, coordinates_and_mz=assigned, countwise_element_ratios=element_ratios)
+        return Assignment(
+            filename=pos.filename,
+            coordinates_and_mz=assigned,
+            countwise_element_ratios=element_ratios,
+            slds=self.sld_volume)
