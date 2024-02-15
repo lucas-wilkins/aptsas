@@ -1,9 +1,10 @@
 import numpy as np
+
 from plotting import show_sample
 
 class PosData:
     """ Positions and mass/charge ratio from a .pos file, along with a few helper functions """
-    def __init__(self, filename: str):
+    def __init__(self, filename: str, downsample: int|None = None):
         self.filename = filename
 
         with open(filename, 'rb') as fid:
@@ -14,6 +15,11 @@ class PosData:
             self.data = np.frombuffer(fid.read(), dtype=dt)
 
         self.data = self.data.reshape(-1, 4)
+
+        if downsample is not None:
+            n = min([self.data.shape[0], downsample])
+            inds = np.random.choice(self.data.shape[0], n)
+            self.data = self.data[inds, :]
 
     def __repr__(self):
         return f"PosData({self.filename}, n={self.n})"

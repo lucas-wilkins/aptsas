@@ -10,6 +10,7 @@ def molecular_sld(elemental_breakdown: list[tuple[str, int]]):
 
     return sld / sum([amount for _, amount in elemental_breakdown])
 
-print(molecular_sld([("C", 1)]))
-print(molecular_sld([("O", 1)]))
-print(molecular_sld([("C", 1), ("O", 2)]))
+if __name__ == "__main__":
+    print(molecular_sld([("C", 1)]))
+    print(molecular_sld([("O", 1)]))
+    print(molecular_sld([("C", 1), ("O", 2)]))

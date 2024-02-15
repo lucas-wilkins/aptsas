@@ -52,6 +52,7 @@ class Assignment:
         self.filename = filename
         self.coordinates_and_mz = coordinates_and_mz
         self.countwise_element_ratios = countwise_element_ratios
+        self.slds = slds
 
     @property
     def coordinates(self):
