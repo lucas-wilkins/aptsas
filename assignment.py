@@ -47,22 +47,19 @@ class Assignment:
                  filename: str,
                  coordinates_and_mz: dict[str, np.ndarray],
                  countwise_element_ratios: dict[str, float],
-                 slds: dict[str, float]):
+                 slds: dict[str, float],
+                 sld_times_volumes: dict[str, float]):
 
         self.filename = filename
         self.coordinates_and_mz = coordinates_and_mz
         self.countwise_element_ratios = countwise_element_ratios
         self.slds = slds
+        self.sld_times_volumes = sld_times_volumes
 
     @property
     def coordinates(self):
         """ Coordinates of a given ion type"""
         return {el: self.coordinates_and_mz[el][:,:3] for el in self.coordinates_and_mz}
-    def __repr__(self):
-        el_frac = reversed(sorted(self.countwise_element_ratios.items(), key=lambda x: x[1]))
-        pretty = ["%s(%i%%)"%(el, int(100*frac)) if frac > 0.01 else el for el, frac in el_frac]
-        comp_string = " ".join(pretty)
-        return f"Assignment({self.filename}, {comp_string})"
 
     def ion_plot(self, ion: str, autoshow: bool=True, n: int = 10_000):
         data = self.coordinates_and_mz[ion]
@@ -78,6 +75,15 @@ class Assignment:
 
         if autoshow:
             plt.show()
+
+    @property
+    def ions(self):
+        return [key for key in self.coordinates_and_mz.keys()]
+    def __repr__(self):
+        el_frac = reversed(sorted(self.countwise_element_ratios.items(), key=lambda x: x[1]))
+        pretty = ["%s(%i%%)"%(el, int(100*frac)) if frac > 0.01 else el for el, frac in el_frac]
+        comp_string = " ".join(pretty)
+        return f"Assignment({self.filename}, {comp_string})"
 
 
 class Assigner:
@@ -221,4 +227,5 @@ class Assigner:
             filename=pos.filename,
             coordinates_and_mz=assigned,
             countwise_element_ratios=element_ratios,
-            slds=self.sld_volume)
+            slds=self.slds,
+            sld_times_volumes=self.sld_volume)

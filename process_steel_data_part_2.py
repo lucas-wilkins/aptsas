@@ -1,5 +1,4 @@
-from naive_debye import load_debye
+from simdata import load_scattering
 
-debye = load_debye("data/test.csv")
-
-debye.show()
+scattering = load_scattering("data/test.csv")
+scattering.show()

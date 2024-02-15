@@ -3,8 +3,10 @@ import numpy as np
 from loadpos import PosData
 from assignment import Assigner
 from naive_debye import NaiveDebye
+from fq_scattering import FqScatteringCalculator
 
-data = PosData("data/R5083_23208-v01-roi_tempered.pos", downsample=30_000)
+# data = PosData("data/R5083_23208-v01-roi_tempered.pos", downsample=10_000)
+data = PosData("data/R5083_23208-v01-roi_tempered.pos")
 # data = PosData("data/R5083_22972-v01_austenited.pos")
 
 print(data)
@@ -22,10 +24,11 @@ print(assignment)
 # assignment.ion_plot("Fe")
 # assignment.ion_plots()
 
-calc = NaiveDebye(assignment)
+# calc = NaiveDebye(assignment)
+calc = FqScatteringCalculator(assignment)
 
 qs = 10**np.linspace(-3, 0, 101)
 
-scattering = calc.run(qs)
+scattering = calc.run(qs, q_vector=(0,0,1))
 scattering.save_csv("data/test.csv")
 
