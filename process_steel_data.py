@@ -4,6 +4,7 @@ from loadpos import PosData
 from assignment import Assigner
 from naive_debye import NaiveDebye
 from fq_scattering import FqScatteringCalculator
+from volume_statistics import volume_statistics
 
 # data = PosData("data/R5083_23208-v01-roi_tempered.pos", downsample=10_000)
 data = PosData("data/R5083_23208-v01-roi_tempered.pos")
@@ -32,3 +33,5 @@ qs = 10**np.linspace(-3, 0, 101)
 scattering = calc.run(qs, q_vector=(0,0,1))
 scattering.save_csv("data/test.csv")
 
+vol_data = volume_statistics(data.coordinates)
+vol_data.save("data/vol.txt")

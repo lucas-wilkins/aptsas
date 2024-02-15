@@ -29,6 +29,10 @@ class PosData:
         return self.data.shape[0]
 
     @property
+    def coordinates(self):
+        return self.data[:, :3]
+
+    @property
     def x(self):
         return self.data[:, 0]
 
