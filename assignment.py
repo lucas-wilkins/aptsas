@@ -4,10 +4,9 @@ from collections import defaultdict
 import numpy as np
 import periodictable
 
-from loadpos import PosData
+from data_loading import PosDataBaseClass
 from ion_slds import molecular_sld
 from plotting import show_sample
-from pr.compensated_sample import CompensatedSample
 
 class ParseError(Exception):
     pass
@@ -198,7 +197,7 @@ class Assigner:
         s = ", ".join(self.elements)
         return f"{self.__class__.__name__}({s})"
 
-    def assign(self, pos: PosData|CompensatedSample):
+    def assign(self, pos: PosDataBaseClass):
         """ Apply the assignment to X,Y,Z,M/Z data (takes a PosData object)"""
 
         # Do the main assignment

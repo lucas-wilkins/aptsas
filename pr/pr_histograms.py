@@ -1,22 +1,30 @@
 import numpy as np
+import warnings
 
 from typing import Sequence
 from collections import defaultdict
 
+from data_loading import PosDataBaseClass
 from assignment import Assignment
 import pickle
 
 class Prs:
     def __init__(self,
-                 r_values: Sequence[float],
-                 r_bin_edges: Sequence[float],
-                 ion_prs: dict[str, Sequence[float]],
-                 atom_prs: dict[str, Sequence[float]]):
+                 r_values: np.ndarray,
+                 r_bin_edges: np.ndarray,
+                 ion_prs: dict[str, dict[str, np.ndarray]],
+                 atom_prs: dict[str, dict[str, np.ndarray]],
+                 scaling: Sequence[float] | None,
+                 scaled_ion_prs: dict[str, dict[str, np.ndarray]] | None,
+                 scaled_atom_prs: dict[str, dict[str, np.ndarray]] | None):
 
         self.r_values = r_values
         self.r_bin_edges = r_bin_edges
         self.ion_prs = ion_prs
         self.atom_prs = atom_prs
+        self.scaling = scaling
+        self.scaled_ion_prs = scaled_ion_prs
+        self.scaled_atom_prs = scaled_atom_prs
 
     def show_raw_ion_hists(self, autoshow=True):
         import matplotlib.pyplot as plt
@@ -42,12 +50,33 @@ class Prs:
         if autoshow:
             plt.show()
 
+
+    def show_scaled_atom_hists(self, autoshow=True):
+        import matplotlib.pyplot as plt
+
+        atoms = [key for key in self.scaled_atom_prs.keys()]
+
+        binned_r2 = (self.r_bin_edges**3)/3
+        binned_r2 = binned_r2[1:] - binned_r2[:-1]
+        binned_r2 /= np.sum(binned_r2)
+
+        for i, atom1 in enumerate(atoms):
+            for atom2 in atoms[i:]:
+                # plt.figure(f"{atom1} - {atom2}")
+                plt.plot(self.r_values, self.scaled_atom_prs[atom1][atom2] / binned_r2)
+
+        if autoshow:
+            plt.show()
+
     def save(self, filename: str):
         data = {
             "r_values": self.r_values,
             "r_bin_edges": self.r_bin_edges,
-            "ion_prs_raw": self.ion_prs,
-            "atom_prs_raw": self.atom_prs}
+            "ion_prs": self.ion_prs,
+            "atom_prs": self.atom_prs,
+            "scaling": self.scaling,
+            "scaled_ion_prs": self.scaled_ion_prs,
+            "scaled_atom_prs": self.scaled_atom_prs}
 
         with open(filename, 'wb') as fid:
             pickle.dump(data, fid)
@@ -60,8 +89,11 @@ class Prs:
             return Prs(
                 r_values=data["r_values"],
                 r_bin_edges=data["r_bin_edges"],
-                ion_prs=data["ion_prs_raw"],
-                atom_prs=data["atom_prs_raw"])
+                ion_prs=data["ion_prs"],
+                atom_prs=data["atom_prs"],
+                scaling=data["scaling"],
+                scaled_ion_prs=data["scaled_ion_prs"],
+                scaled_atom_prs=data["scaled_atom_prs"])
 
 
 class PrCalculator:
@@ -78,8 +110,24 @@ class PrCalculator:
         else:
             self.r_bin_centres = r_bin_centres
 
-    def calculate(self, assignment: Assignment, max_chunk=5_000, verbose=True):
+    def calculate(self,
+                  assignment: Assignment,
+                  sample: PosDataBaseClass | None = None,
+                  max_chunk=5_000,
+                  verbose=True):
+
         """ Calculate the ass"""
+
+
+        # Calculate the normalised values
+        if sample is not None:
+            scaling = sample.pr_weighting(bin_edges=self.r_bin_edges) # np.ndarray | None
+        else:
+            scaling = None
+
+        if scaling is None:
+            warnings.warn("No scaling set (sample parameter not set, or sample type does not support it)")
+
         # Strategy is to histogram each ion, then distribute each to the
         # atom histograms appropriately
 
@@ -144,9 +192,20 @@ class PrCalculator:
         ion_prs = {ion1: {ion2: ion_prs[ion1][ion2] for ion2 in ion_prs[ion1]} for ion1 in ion_prs}
         atom_prs = {atom1: {atom2: atom_prs[atom1][atom2] for atom2 in atom_prs[atom1]} for atom1 in atom_prs}
 
+        if scaling is None:
+            scaled_ion_prs = None
+            scaled_atom_prs = None
+
+        else:
+            scaled_ion_prs = {ion1: {ion2: ion_prs[ion1][ion2]/scaling for ion2 in ion_prs[ion1]} for ion1 in ion_prs}
+            scaled_atom_prs = {atom1: {atom2: atom_prs[atom1][atom2]/scaling for atom2 in atom_prs[atom1]} for atom1 in atom_prs}
+
         return Prs(
             r_values=self.r_bin_centres,
             r_bin_edges=self.r_bin_edges,
             ion_prs=ion_prs,
-            atom_prs=atom_prs)
+            atom_prs=atom_prs,
+            scaling=scaling,
+            scaled_ion_prs=scaled_ion_prs,
+            scaled_atom_prs=scaled_atom_prs)
 

@@ -1,14 +1,14 @@
 import numpy as np
 
-from loadpos import PosData
+from data_loading import FullFile, RandomSelection
 from assignment import Assigner
 from naive_debye import NaiveDebye
 from fq_scattering import FqScatteringCalculator
 from volume_statistics import volume_statistics
 
-# data = PosData("data/R5083_23208-v01-roi_tempered.pos", downsample=10_000)
-data = PosData("../data/R5083_23208-v01-roi_tempered.pos")
-# data = PosData("data/R5083_22972-v01_austenited.pos")
+data = RandomSelection("../data/R5083_23208-v01-roi_tempered.pos", sample_size=10_000)
+# data = FullFile("../data/R5083_23208-v01-roi_tempered.pos")
+# data = FullFile("data/R5083_22972-v01_austenited.pos")
 
 print(data)
 
@@ -31,7 +31,7 @@ calc = FqScatteringCalculator(assignment)
 qs = 10**np.linspace(-3, 0, 101)
 
 scattering = calc.run(qs, q_vector=(0,0,1))
-scattering.save_csv("data/test.csv")
+scattering.save_csv("../data/test.csv")
 
 vol_data = volume_statistics(data.coordinates)
-vol_data.save("data/vol.txt")
+vol_data.save("../data/vol.txt")

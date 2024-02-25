@@ -56,6 +56,8 @@ def sphere_undersampling(sphere_radius, r_values):
     return output
 
 def sphere_undersampling_integral_function(s: np.ndarray):
+    """ Integral of sphere PDF with s being 0.5*r/sphere_radius"""
+
     inds = s <= 1
     output = np.ones_like(s)
 
@@ -64,6 +66,8 @@ def sphere_undersampling_integral_function(s: np.ndarray):
 
     return output
 
+def sphere_undersampling_integral_with_r_squared(s: np.ndarray):
+    pass
 
 
 if __name__ == "__main__":
