@@ -1,3 +1,4 @@
+from typing import Sequence
 from collections import defaultdict
 
 import numpy as np
@@ -6,6 +7,7 @@ import periodictable
 from loadpos import PosData
 from ion_slds import molecular_sld
 from plotting import show_sample
+from pr.compensated_sample import CompensatedSample
 
 class ParseError(Exception):
     pass
@@ -48,13 +50,15 @@ class Assignment:
                  coordinates_and_mz: dict[str, np.ndarray],
                  countwise_element_ratios: dict[str, float],
                  slds: dict[str, float],
-                 sld_times_volumes: dict[str, float]):
+                 sld_times_volumes: dict[str, float],
+                 ions_to_atoms: dict[str, list[tuple[str, int]]]):
 
         self.filename = filename
         self.coordinates_and_mz = coordinates_and_mz
         self.countwise_element_ratios = countwise_element_ratios
         self.slds = slds
         self.sld_times_volumes = sld_times_volumes
+        self.ions_to_atoms = ions_to_atoms
 
     @property
     def coordinates(self):
@@ -79,6 +83,7 @@ class Assignment:
     @property
     def ions(self):
         return [key for key in self.coordinates_and_mz.keys()]
+
     def __repr__(self):
         el_frac = reversed(sorted(self.countwise_element_ratios.items(), key=lambda x: x[1]))
         pretty = ["%s(%i%%)"%(el, int(100*frac)) if frac > 0.01 else el for el, frac in el_frac]
@@ -193,7 +198,7 @@ class Assigner:
         s = ", ".join(self.elements)
         return f"{self.__class__.__name__}({s})"
 
-    def assign(self, pos: PosData):
+    def assign(self, pos: PosData|CompensatedSample):
         """ Apply the assignment to X,Y,Z,M/Z data (takes a PosData object)"""
 
         # Do the main assignment
@@ -228,4 +233,5 @@ class Assigner:
             coordinates_and_mz=assigned,
             countwise_element_ratios=element_ratios,
             slds=self.slds,
-            sld_times_volumes=self.sld_volume)
+            sld_times_volumes=self.sld_volume,
+            ions_to_atoms=self.elemental_ion_breakdown)

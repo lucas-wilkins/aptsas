@@ -55,15 +55,36 @@ def sphere_undersampling(sphere_radius, r_values):
 
     return output
 
+def sphere_undersampling_integral_function(s: np.ndarray):
+    inds = s <= 1
+    output = np.ones_like(s)
+
+    s = s[inds]
+    output[inds] = s*(8 + s*(s*s-6))/3
+
+    return output
+
+
+
 if __name__ == "__main__":
 
     import matplotlib.pyplot as plt
 
     r_values = np.linspace(0,15, 101)
+    s_values = np.linspace(0, 2, 101)
 
     plt.figure()
     plt.plot(r_values, sphere_undersampling(5, r_values))
     plt.figure()
     plt.plot(r_values, sphere_undersampling(5, r_values)*r_values**2)
+
+    plt.figure()
+    plt.plot(s_values, sphere_undersampling_integral_function(s_values))
+
+    plt.figure()
+    plt.plot(s_values[1:],
+             sphere_undersampling_integral_function(s_values[1:]) -
+             sphere_undersampling_integral_function(s_values[:-1]))
+
 
     plt.show()

@@ -7,14 +7,14 @@ from fq_scattering import FqScatteringCalculator
 from volume_statistics import volume_statistics
 
 # data = PosData("data/R5083_23208-v01-roi_tempered.pos", downsample=10_000)
-data = PosData("data/R5083_23208-v01-roi_tempered.pos")
+data = PosData("../data/R5083_23208-v01-roi_tempered.pos")
 # data = PosData("data/R5083_22972-v01_austenited.pos")
 
 print(data)
 
 # data.show_sample()
 
-assigner = Assigner("data/S390_steel.rrng")
+assigner = Assigner("../data/S390_steel.rrng")
 
 print(assigner)
 
