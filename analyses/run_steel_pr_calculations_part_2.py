@@ -14,6 +14,6 @@ for file_prefix in ["R5083_23208-v01-roi_tempered", "R5083_22972-v01_austenited"
 
     # prs.show_raw_atom_hists()
     # prs.show_scaled_atom_hists()
-    prs.show_scaled_atom_hists_table(full_range=True, autoshow=True)
+    prs.show_scaled_atom_hists_table(full_range=True, autoshow=False)
 
 plt.show()
