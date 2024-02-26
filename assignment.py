@@ -210,7 +210,8 @@ class Assigner:
                     pos.data[:, 3] >= start,
                     pos.data[:, 3] <= stop)
 
-                assigned_raw[ion].append(pos.data[inds, :])
+                if np.sum(inds) > 0:
+                    assigned_raw[ion].append(pos.data[inds, :])
 
         assigned = {ion: np.concatenate(assigned_raw[ion]) for ion in assigned_raw}
 

@@ -68,6 +68,42 @@ class Prs:
         if autoshow:
             plt.show()
 
+    def show_scaled_atom_hists_table(self, autoshow=True, numbers=False, full_range=False):
+        import matplotlib.pyplot as plt
+
+        atoms = [key for key in self.scaled_atom_prs.keys()]
+
+        binned_r2 = (self.r_bin_edges ** 3) / 3
+        binned_r2 = binned_r2[1:] - binned_r2[:-1]
+        binned_r2 /= np.sum(binned_r2)
+
+        n = len(atoms)
+
+        for i, atom1 in enumerate(atoms):
+            for j, atom2 in enumerate(atoms):
+
+
+                plt_no = 1 + i + n*j
+                plt.subplot(n, n, plt_no)
+                plot_data = self.scaled_atom_prs[atom1][atom2] / binned_r2
+                plt.plot(self.r_values, plot_data)
+
+                if full_range:
+                    plt.ylim([0, 1.05*np.max(plot_data)])
+
+                if not numbers:
+                    plt.xticks([],[])
+                    plt.yticks([],[])
+
+                if i == 0:
+                    plt.ylabel(atom2)
+
+                if j == 0:
+                    plt.title(atom1)
+
+        if autoshow:
+            plt.show()
+
     def save(self, filename: str):
         data = {
             "r_values": self.r_values,
@@ -114,7 +150,8 @@ class PrCalculator:
                   assignment: Assignment,
                   sample: PosDataBaseClass | None = None,
                   max_chunk=5_000,
-                  verbose=True):
+                  verbose=True,
+                  self_remove_distance: float | None = 0.0001):
 
         """ Calculate the ass"""
 
@@ -157,6 +194,9 @@ class PrCalculator:
                     print(f"  {ion1} count: {n1}, chunk factor {len(chunk_edges_1) - 1}")
                     print(f"  {ion2} count: {n2}, chunk factor {len(chunk_edges_2) - 1}")
 
+                if self_remove_distance is not None:
+                    remove_distance_squared = self_remove_distance**2
+
                 # Iterate over chunks
                 chunk_counter = 0
                 total_chunks = (len(chunk_edges_1) - 1) * (len(chunk_edges_2) - 1)
@@ -171,7 +211,12 @@ class PrCalculator:
                         y_diff = pos1[start_1:stop_1, 1].reshape(1, -1) - pos2[start_2:stop_2, 1].reshape(-1, 1)
                         z_diff = pos1[start_1:stop_1, 2].reshape(1, -1) - pos2[start_2:stop_2, 2].reshape(-1, 1)
 
-                        hist_data, edges = np.histogram((x_diff**2 + y_diff**2 + z_diff**2).reshape(-1), bins=self.r_squared_bin_edges)
+                        r_squareds = (x_diff**2 + y_diff**2 + z_diff**2).reshape(-1)
+
+                        if self_remove_distance is not None:
+                            r_squareds = r_squareds[r_squareds > remove_distance_squared]
+
+                        hist_data, edges = np.histogram(r_squareds, bins=self.r_squared_bin_edges)
 
                         counts += hist_data
 
@@ -180,6 +225,8 @@ class PrCalculator:
         def dict_default():
             return defaultdict(lambda: np.zeros_like(self.r_bin_centres, dtype=int))
 
+
+        # TODO: Don't think this is right
         atom_prs = defaultdict(dict_default)
 
         for ion1 in ion_prs:
