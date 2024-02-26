@@ -161,4 +161,6 @@ cython_debug/
 
 /data/*
 !/data/about.txt
+!/data/simulated/
+/data/simulated/*
 !/data/simulated/about.txt
