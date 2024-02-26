@@ -161,4 +161,3 @@ cython_debug/
 
 /data/*
 !/data/about.txt
-!/data/simulated/
