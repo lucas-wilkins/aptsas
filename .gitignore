@@ -164,3 +164,5 @@ cython_debug/
 !/data/simulated/
 /data/simulated/*
 !/data/simulated/about.txt
+
+*.nb

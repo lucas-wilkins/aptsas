@@ -68,14 +68,14 @@ class Prs:
         if autoshow:
             plt.show()
 
-    def show_scaled_atom_hists_table(self, autoshow=True, numbers=False, full_range=False):
+    def show_scaled_atom_hists_table(self, autoshow=True, numbers=False, full_range=False, show_mean=True):
         import matplotlib.pyplot as plt
 
         atoms = [key for key in self.scaled_atom_prs.keys()]
 
-        binned_r2 = (self.r_bin_edges ** 3) / 3
-        binned_r2 = binned_r2[1:] - binned_r2[:-1]
-        binned_r2 /= np.sum(binned_r2)
+        # binned_r2 = (self.r_bin_edges ** 3) / 3
+        # binned_r2 = binned_r2[1:] - binned_r2[:-1]
+        # binned_r2 /= np.sum(binned_r2)
 
         n = len(atoms)
 
@@ -85,8 +85,12 @@ class Prs:
 
                 plt_no = 1 + i + n*j
                 plt.subplot(n, n, plt_no)
-                plot_data = self.scaled_atom_prs[atom1][atom2] / binned_r2
+                plot_data = self.scaled_atom_prs[atom1][atom2] #/ binned_r2
                 plt.plot(self.r_values, plot_data)
+
+                if show_mean:
+                    m = np.mean(plot_data)
+                    plt.plot(self.r_values, np.ones_like(self.r_values)*m)
 
                 if full_range:
                     plt.ylim([0, 1.05*np.max(plot_data)])

@@ -66,29 +66,54 @@ def sphere_undersampling_integral_function(s: np.ndarray):
 
     return output
 
-def sphere_undersampling_integral_with_r_squared(s: np.ndarray):
-    pass
+def sphere_undersampling_integral_with_r_squared(r_values: np.ndarray, radius: float):
+    """
+
+    Calculate the correction term for Prs sampled spherically
+
+    Integral of:
+       Volume of (h_over_r ** 2) * (3 - h_over_r), times
+       r^2
+    where
+       h/r = 1 - 0.5*r/r0
+    so, we have the integral of
+        (r - 2r0)^2 (r + 4r0) / 8r0^3
+    which normalised is
+        (r - 2r0)^2 (r + 4r0) / 2 r0^4
+
+    Then, the cumulative integral is
+        r^3 (r^3 - 18 r r0^2 + 32 r0^3) / 96 r0^4
+
+
+    :param r_values: r parameter values
+    :param radius: sphere radius
+    :return: integral above
+    """
+
+    return r_values**3 * (r_values**3 - 18*r_values*(radius**2) + 32*(radius**3)) / (96*radius**4)
 
 
 if __name__ == "__main__":
 
     import matplotlib.pyplot as plt
 
-    r_values = np.linspace(0,15, 101)
-    s_values = np.linspace(0, 2, 101)
+    r_values = np.linspace(0,30, 101)
+    bin_centres = 0.5*(r_values[1:] + r_values[:-1])
 
-    plt.figure()
-    plt.plot(r_values, sphere_undersampling(5, r_values))
-    plt.figure()
-    plt.plot(r_values, sphere_undersampling(5, r_values)*r_values**2)
+    radius = 15
 
-    plt.figure()
-    plt.plot(s_values, sphere_undersampling_integral_function(s_values))
+    data = sphere_undersampling_integral_with_r_squared(r_values, radius)
 
-    plt.figure()
-    plt.plot(s_values[1:],
-             sphere_undersampling_integral_function(s_values[1:]) -
-             sphere_undersampling_integral_function(s_values[:-1]))
+    plt.figure("Integral")
+    plt.plot(r_values, data)
+
+    diffs = data[1:] - data[:-1]
+
+    plt.figure("Diffs")
+    plt.plot(bin_centres, diffs)
+
+    plt.figure("Scaled diffs")
+    plt.plot(bin_centres, diffs/(bin_centres**2))
 
 
     plt.show()

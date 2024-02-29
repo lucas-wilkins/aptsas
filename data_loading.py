@@ -3,7 +3,7 @@ import numpy as np
 import warnings
 
 from plotting import show_sample
-from shape_factors import sphere_undersampling_integral_function
+from shape_factors import sphere_undersampling_integral_function, sphere_undersampling_integral_with_r_squared
 
 
 class PosDataBaseClass:
@@ -119,6 +119,6 @@ class SphereSelection(PosDataBaseClass):
         return output
 
     def pr_weighting(self, bin_edges: np.ndarray):
-        cdf = sphere_undersampling_integral_function(0.5*bin_edges / self.radius)
+        cdf = sphere_undersampling_integral_with_r_squared(bin_edges, self.radius)
         return cdf[1:] - cdf[:-1]
 

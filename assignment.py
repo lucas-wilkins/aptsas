@@ -64,12 +64,12 @@ class Assignment:
         """ Coordinates of a given ion type"""
         return {el: self.coordinates_and_mz[el][:,:3] for el in self.coordinates_and_mz}
 
-    def ion_plot(self, ion: str, autoshow: bool=True, n: int = 10_000):
+    def show_ion_plot(self, ion: str, autoshow: bool=True, n: int = 10_000):
         data = self.coordinates_and_mz[ion]
         show_sample(data, autoshow=autoshow, n=n, name=ion)
 
 
-    def ion_plots(self, autoshow: bool=True, n: int = 10_000):
+    def show_ion_plots(self, autoshow: bool=True, n: int = 10_000):
         import matplotlib.pyplot as plt
 
         for ion in self.coordinates_and_mz:
