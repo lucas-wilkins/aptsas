@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-from pr.pr_histograms import Prs
+from pr.pr_analysis import Prs
 
 for file_prefix in ["R5083_23208-v01-roi_tempered", "R5083_22972-v01_austenited"]:
 
@@ -15,6 +15,7 @@ for file_prefix in ["R5083_23208-v01-roi_tempered", "R5083_22972-v01_austenited"
     # prs.show_raw_ion_hists()
     # prs.show_raw_atom_hists()
     # prs.show_scaled_atom_hists()
+    # prs.show_scaled_ion_hists_table(full_range=True, autoshow=False, numbers=True)
     prs.show_scaled_atom_hists_table(full_range=True, autoshow=False, numbers=True)
 
 plt.show()

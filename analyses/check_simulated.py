@@ -1,6 +1,6 @@
 import numpy as np
 
-from data_loading import SphereSelection
+from input_data import SphereSelection
 
 data = SphereSelection("../data/simulated/diamond.pos", (0,0,0), 5)
 

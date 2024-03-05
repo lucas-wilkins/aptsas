@@ -1,6 +1,6 @@
 import numpy as np
 
-from data_loading import FullFile, RandomSelection
+from input_data import FullFile, RandomSelection
 from assignment import Assigner
 from naive_debye import NaiveDebye
 from fq_scattering import FqScatteringCalculator

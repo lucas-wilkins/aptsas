@@ -4,7 +4,7 @@ from collections import defaultdict
 import numpy as np
 import periodictable
 
-from data_loading import PosDataBaseClass
+from input_data import PosDataBaseClass
 from ion_slds import molecular_sld
 from plotting import show_sample
 

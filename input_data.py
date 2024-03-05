@@ -64,6 +64,11 @@ class PosDataBaseClass:
 
         return None
 
+    def volume(self):
+        warnings.warn(f"Volume function not implemented for class '{self.__class__.__name__}'")
+
+        return None
+
 class FullFile(PosDataBaseClass):
     """ Load a .pos file with no subsampling"""
     def sampling(self, data: np.ndarray):
@@ -71,6 +76,7 @@ class FullFile(PosDataBaseClass):
 
 class RandomSelection(PosDataBaseClass):
     """ Load a sample of a given size from a pos file"""
+
 
     def __init__(self, filename: str, sample_size: int):
         self.sample_size = sample_size
@@ -122,3 +128,5 @@ class SphereSelection(PosDataBaseClass):
         cdf = sphere_undersampling_integral_with_r_squared(bin_edges, self.radius)
         return cdf[1:] - cdf[:-1]
 
+    def volume(self):
+        return (4/3)*np.pi*(self.radius**2)

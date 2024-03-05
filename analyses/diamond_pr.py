@@ -1,8 +1,8 @@
 import numpy as np
 
-from data_loading import SphereSelection
+from input_data import SphereSelection
 from assignment import Assigner
-from pr.pr_histograms import PrCalculator, Prs
+from pr.pr_analysis import PrCalculator, Prs
 
 rerun_calc = False
 

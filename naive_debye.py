@@ -2,7 +2,7 @@ from typing import Sequence
 import numpy as np
 
 from assignment import Assignment
-from simdata import ScatteringOutput
+from sattering_output import ScatteringOutput
 
 class NaiveDebye:
 

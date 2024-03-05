@@ -4,7 +4,7 @@ import warnings
 from typing import Sequence
 from collections import defaultdict
 
-from data_loading import PosDataBaseClass
+from input_data import PosDataBaseClass
 from assignment import Assignment
 import pickle
 
@@ -16,7 +16,8 @@ class Prs:
                  atom_prs: dict[str, dict[str, np.ndarray]],
                  scaling: Sequence[float] | None,
                  scaled_ion_prs: dict[str, dict[str, np.ndarray]] | None,
-                 scaled_atom_prs: dict[str, dict[str, np.ndarray]] | None):
+                 scaled_atom_prs: dict[str, dict[str, np.ndarray]] | None,
+                 volume: float | None):
 
         self.r_values = r_values
         self.r_bin_edges = r_bin_edges
@@ -25,6 +26,7 @@ class Prs:
         self.scaling = scaling
         self.scaled_ion_prs = scaled_ion_prs
         self.scaled_atom_prs = scaled_atom_prs
+        self.volume = volume
 
     def show_raw_ion_hists(self, autoshow=True):
         import matplotlib.pyplot as plt
@@ -108,6 +110,47 @@ class Prs:
         if autoshow:
             plt.show()
 
+    def show_scaled_ion_hists_table(self, autoshow=True, numbers=False, full_range=False, show_mean=True):
+        import matplotlib.pyplot as plt
+
+        ions = [key for key in self.scaled_ion_prs.keys()]
+
+        # binned_r2 = (self.r_bin_edges ** 3) / 3
+        # binned_r2 = binned_r2[1:] - binned_r2[:-1]
+        # binned_r2 /= np.sum(binned_r2)
+
+        n = len(ions)
+
+        for i, ion1 in enumerate(ions):
+            for j, ion2 in enumerate(ions):
+
+
+                plt_no = 1 + i + n*j
+                plt.subplot(n, n, plt_no)
+                plot_data = self.scaled_ion_prs[ion1][ion2] #/ binned_r2
+                plt.plot(self.r_values, plot_data)
+
+                if show_mean:
+                    m = np.mean(plot_data)
+                    plt.plot(self.r_values, np.ones_like(self.r_values)*m)
+
+                if full_range:
+                    plt.ylim([0, 1.05*np.max(plot_data)])
+
+                if not numbers:
+                    plt.xticks([],[])
+                    plt.yticks([],[])
+
+                if i == 0:
+                    plt.ylabel(ion2)
+
+                if j == 0:
+                    plt.title(ion1)
+
+        if autoshow:
+            plt.show()
+
+
     def save(self, filename: str):
         data = {
             "r_values": self.r_values,
@@ -116,7 +159,8 @@ class Prs:
             "atom_prs": self.atom_prs,
             "scaling": self.scaling,
             "scaled_ion_prs": self.scaled_ion_prs,
-            "scaled_atom_prs": self.scaled_atom_prs}
+            "scaled_atom_prs": self.scaled_atom_prs,
+            "volume": self.volume}
 
         with open(filename, 'wb') as fid:
             pickle.dump(data, fid)
@@ -133,7 +177,9 @@ class Prs:
                 atom_prs=data["atom_prs"],
                 scaling=data["scaling"],
                 scaled_ion_prs=data["scaled_ion_prs"],
-                scaled_atom_prs=data["scaled_atom_prs"])
+                scaled_atom_prs=data["scaled_atom_prs"],
+                volume=data["volume"] if "volume" in data else None # TODO: Remove this check when we don't have any files that might not have volume in them
+            )
 
 
 class PrCalculator:
@@ -251,6 +297,8 @@ class PrCalculator:
             scaled_ion_prs = {ion1: {ion2: ion_prs[ion1][ion2]/scaling for ion2 in ion_prs[ion1]} for ion1 in ion_prs}
             scaled_atom_prs = {atom1: {atom2: atom_prs[atom1][atom2]/scaling for atom2 in atom_prs[atom1]} for atom1 in atom_prs}
 
+        volume = None if sample.volume() is None else sample.volume()
+
         return Prs(
             r_values=self.r_bin_centres,
             r_bin_edges=self.r_bin_edges,
@@ -258,5 +306,6 @@ class PrCalculator:
             atom_prs=atom_prs,
             scaling=scaling,
             scaled_ion_prs=scaled_ion_prs,
-            scaled_atom_prs=scaled_atom_prs)
+            scaled_atom_prs=scaled_atom_prs,
+            volume=volume)
 

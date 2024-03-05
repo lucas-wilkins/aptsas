@@ -1,8 +1,8 @@
 import numpy as np
 
-from data_loading import SphereSelection
+from input_data import SphereSelection, RandomSelection
 from assignment import Assigner
-from pr.pr_histograms import PrCalculator
+from pr.pr_analysis import PrCalculator
 
 import matplotlib.pyplot as plt
 
@@ -10,8 +10,10 @@ do_calc = False
 
 for file_prefix, z0 in [("R5083_23208-v01-roi_tempered", 3), ("R5083_22972-v01_austenited", 150)]:
 
-    data = SphereSelection("../data/%s.pos"%file_prefix,
-                           (0, 0, z0), 24, sample_size=200_000)
+    # data = SphereSelection("../data/%s.pos"%file_prefix,
+    #                        (0, 0, z0), 24, sample_size=200_000)
+
+    data = RandomSelection("../data/%s.pos"%file_prefix, sample_size=400_000)
 
 
     # data = PosData("data/R5083_23208-v01-roi_tempered.pos")
@@ -20,7 +22,7 @@ for file_prefix, z0 in [("R5083_23208-v01-roi_tempered", 3), ("R5083_22972-v01_a
     print(data)
 
     plt.figure("%s - sample"%file_prefix)
-    # data.show_sample(autoshow=False)
+    data.show_sample(autoshow=False)
 
 
 
@@ -28,8 +30,8 @@ for file_prefix, z0 in [("R5083_23208-v01-roi_tempered", 3), ("R5083_22972-v01_a
     print(assigner)
     assignment = assigner.assign(data)
 
-    # plt.figure("%s - sample" % file_prefix)
-    # assignment.show_ion_plots(autoshow=True)
+    plt.figure("%s - sample" % file_prefix)
+    assignment.show_ion_plots(autoshow=True)
 
     if do_calc:
         pr_calc = PrCalculator(r_bin_edges=np.linspace(0.0, 48.0, 49))
