@@ -1,6 +1,9 @@
 from typing import Sequence
 from collections import defaultdict
 
+import os
+import pickle
+
 import numpy as np
 import periodictable
 
@@ -60,7 +63,7 @@ class Assignment:
         self.ions_to_atoms = ions_to_atoms
 
     @property
-    def coordinates(self):
+    def coordinates(self) -> dict[str, np.ndarray]:
         """ Coordinates of a given ion type"""
         return {el: self.coordinates_and_mz[el][:,:3] for el in self.coordinates_and_mz}
 
@@ -88,6 +91,40 @@ class Assignment:
         pretty = ["%s(%i%%)"%(el, int(100*frac)) if frac > 0.01 else el for el, frac in el_frac]
         comp_string = " ".join(pretty)
         return f"Assignment({self.filename}, {comp_string})"
+
+    def write_files(self, path: str, verbose=False):
+
+        if not os.path.exists(path):
+            try:
+                os.mkdir(path)
+            except:
+                raise FileNotFoundError(f"No parent directory for creating '{path}'")
+
+        if os.path.isdir(path):
+
+            for ion in self.ions:
+
+                filename = os.path.join(path, ion + ".xyz")
+
+                if verbose:
+                    print("Writing", filename)
+
+                with open(filename, 'wb') as fid:
+                    write_data = self.coordinates[ion].astype(dtype=float)
+                    write_data.tofile(fid)
+
+            filename = os.path.join(path, "metadata.pickle")
+
+            with open(filename, 'wb') as fid:
+                pickle.dump(self.ions_to_atoms, fid)
+
+            if verbose:
+                print("Writing", filename)
+
+
+        else:
+            raise ValueError("Expected to be given a directory")
+
 
 
 class Assigner:
