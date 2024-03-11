@@ -166,3 +166,5 @@ cython_debug/
 !/data/simulated/about.txt
 
 *.nb
+
+/pr/statistical_methods/bias_test_data/repeats/
