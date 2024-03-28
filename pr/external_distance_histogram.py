@@ -99,9 +99,9 @@ class ExternalHistogramData:
                     self.selfs[ion1] = {ion2: float(parts[5])}
 
                 if ion1 in self.means:
-                    self.means[ion1][ion2] = float(parts[4]) / self.volume
+                    self.means[ion1][ion2] = float(parts[4]) / (self.volume**2)
                 else:
-                    self.means[ion1] = {ion2: float(parts[4]) / self.volume}
+                    self.means[ion1] = {ion2: float(parts[4]) / (self.volume**2)}
 
 
         self.raw_data = {}
@@ -134,7 +134,7 @@ class ExternalHistogramData:
                 left_int = sphere_undersampling_integral_with_r_squared(self.r_left, radius)
                 right_int = sphere_undersampling_integral_with_r_squared(self.r_right, radius)
 
-                scaling = (right_int - left_int)/(self.bin_sizes**2)
+                scaling = (right_int - left_int)/(self.bin_sizes**3)
 
                 values = np.array(values)
                 if ion1 in self.raw_data:
@@ -155,6 +155,13 @@ class ExternalHistogramData:
                     self.scaled_data[ion1] = {ion2: no_selfs/scaling}
 
         self.r_mid = 0.5*(self.r_left + self.r_right)
+
+
+        # Calculate the atom-wise data
+
+        for ion1 in self.ions:
+            for ion2 in self.ions:
+                pass
 
     def plot(self, autoshow=True):
         import matplotlib.pyplot as plt
