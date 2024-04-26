@@ -29,8 +29,13 @@ class ExternalHistogrammer:
 
         self.counts = []
         for ion in self.ion_types:
-            file_size = os.path.getsize(os.path.join(self.directory, f"{ion}.xyz"))
-            self.counts.append(file_size // 24)
+            ion_file = os.path.join(self.directory, f"{ion}.xyz")
+            if os.path.exists(ion_file):
+                file_size = os.path.getsize(ion_file)
+
+                self.counts.append(file_size // 24)
+            else:
+                self.counts.append(0)
 
 
     def run(self):
@@ -38,7 +43,13 @@ class ExternalHistogrammer:
         with open(os.path.join(self.output_directory, "log.log"), 'w') as logfile:
 
             for i, (ion1, count1) in enumerate(zip(self.ion_types, self.counts)):
+                if count1 == 0:
+                    continue
+
                 for ion2, count2 in zip(self.ion_types[i:], self.counts[i:]):
+                    if count2 == 0:
+                        continue
+
                     print(ion1, ion2)
 
                     tic = time.time()
